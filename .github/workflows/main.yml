@@ -10,15 +10,10 @@ jobs:
     steps:
     - uses: actions/checkout@v1
     - name: Run a one-line script
-      run: echo Hello, world!
-    - name: Run a multi-line script
-      run: |
-        echo Add other actions to build,
-        echo test, and deploy your project.
     - name: Send Tweet Action
       uses: ethomson/send-tweet-action@v1.0.0
       with:
-        status: "IceScript just initiated a new push. 1/16/20-0921 https://github.com/hiitsdevin/IceScript/"
+        status: "IceScript just initiated a new push. 1/16/20-0932 https://github.com/hiitsdevin/IceScript/"
         consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
         consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
         access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
