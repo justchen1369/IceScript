@@ -1,5 +1,5 @@
 # IceScript
-Ice Bear wants to make a joke programming language. Confusing. Please don't use in serious cases unless you are Devin or Dyn.
+Ice Bear wants to make a joke programming language. Confusing. Please don't use in serious cases unless you are Devin or Dyn, Or if you're just a masochist [Devin], then holy fuck.
 
 ![1](https://i.hiitsdevin.dev/captures/hiitsdevin_new_842338.png)
 
