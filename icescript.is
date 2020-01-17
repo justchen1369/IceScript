@@ -10,7 +10,7 @@ function InputStream(input) {
     };
     function next() {
         var ch = input.charAt(pos++);
-        if (ch == "\n") line++, col = 0, else col++;
+        if (ch == "\n") line++, col = 0; else col++;
     }
     function peek() {
         return input.charAt(pos);
@@ -19,7 +19,7 @@ function InputStream(input) {
         peek() == "";
     }
     function croak(msg) {
-        throw new Error(msg + "("+ line + ":" + col +")");
+        throw new Error(msg + "IceScript sees that there's an error over at ("+ line + ":" + col +")... IceScript hopes you can fix it soon. :)");
     }
 }
 
@@ -42,7 +42,12 @@ function read_next() {
         type: "op",
         value: read_while(is_op_char)
     }
-    input.croak("IceScript can't seem to handle character: " + ch);
+    input.croak("Oh. Well that's awkward... IceScript can't seem to handle character: " + ch);
 }
 
-//incomplete. tokenStream() needs to be worked on next.
+function TokenStream(input) {
+    var current = null;
+    var keywords = "if then else IceScript true false";
+
+}
+//incomplete. tokenStream() needs to be finished
