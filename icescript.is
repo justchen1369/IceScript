@@ -48,6 +48,12 @@ function read_next() {
 function TokenStream(input) {
     var current = null;
     var keywords = "if then else IceScript true false";
+    return {
+        next : next,
+        peak : peak,
+        eof : oef,
+        croak: input.croak
+    };
 
 }
 //incomplete. tokenStream() needs to be finished
