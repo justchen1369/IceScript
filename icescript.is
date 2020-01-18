@@ -1,3 +1,4 @@
+// InputStream()
 function InputStream(input) {
     var pos = 0,
         line = 1,
@@ -23,11 +24,12 @@ function InputStream(input) {
     }
 }
 
+// read_next()
 function read_next() {
     read_while(is_whitespace);
     if (input.eof()) return null;
     var ch = input.peek();
-    if (ch == "IceBear") {
+    if (ch == "IceBearComment") {
         skip_comment();
         return read_next();
     }
@@ -45,6 +47,7 @@ function read_next() {
     input.croak("Oh. Well that's awkward... IceScript can't seem to handle character: " + ch);
 }
 
+// ah yes, TokenStream()
 function TokenStream(input) {
     var current = null;
     var keywords = "if then else IceScript true false";
@@ -93,13 +96,116 @@ function TokenStream(input) {
         })
         return { type : "num", value: parseFloat(number) }
     }
+    function read_indent() {
+        var id = read_while(is_id);
+        return {
+            type : is_keyword(id) ? "kw" : "var",
+            value: id
+        };
+    }
+    function read_escaped(end) {
+        var escaped = false, str = "";
+        input.next();
+        while (!input.eof) {
+            var ch = input.next();
+            if (escaped) {
+                str += ch;
+                escaped = false;
+            } else if (ch == "\\") {
+                escaped = true;
+            } else if (ch == end) {
+                break;
+            } else {
+                str += ch;
+            }
+        }
+        return str;
+    }
+    function read_string() {
+        return { type : "str", value: read_escaped('"') };
+    }
+    function skip_comment() {
+        read_while(function(ch){ return ch != "\n"});
+        input.next();
+    }
+    function read_next() {
+        read_while(is_whitespace);
+        if (input.eof()) return null;
+        var ch = input.peek();
+        if (ch == "IceBearComment") {
+            skip_comment();
+            return read_next();
+        }
+        if (ch == '"') return read_string();
+        if (is_digit(ch)) return read_number();
+        if (is_id_start(ch)) return read_indent();
+        if (is_punc(ch)) return {
+            type : "punc",
+            value : input.next()
+        };
+        if (is_op_char(ch)) return {
+            type : "op",
+            value : read_while(is_op_char)
+        };
+        input.croak("Oh. Well that's awkward... IceScript can't seem to handle character: " + ch);
+    }
+    function peek() {
+        return current || (current = read_next());
+    }
+    function next() {
+        var tok = current;
+        current = null;
+        return tok || read_next();
+    }
+    function eof() {
+        return peek() == null;
+    }
 }
-//incomplete. tokenStream() needs to be finished
-// TODO 1 for tokenStream():
-// - read_escaped()
-// - read_string()
-// - skip_comment
-// - read_next()
-// - peak() function
-// - next() function
-// - eof() function
+
+//Parser function
+function parse_icescript() {
+    return {
+        type : "IceScript",
+        vars: delimited("(", ")", ",", parse_varname),
+        body: parse_expression()
+    };
+}
+
+function delimited(start, stop, separator, parser) {
+    var a = [], first = true;
+    skip_punc(start);
+    while (!input.eof()) {
+        if (is_punc(stop)) break;
+        if (first) first = false; else skip_punc(separator);
+        if (is_punc(stop)) break; // the last separator can be missing
+        a.push(parser());
+    }
+    skip_punc(stop);
+    return a;
+}
+
+function parse_toplevel() {
+    var prog = [];
+    while (!input.eof()) {
+        prog.push(parse_expression());
+        if (!input.eof()) skip_punc(";");
+    }
+    return { type : "prog", prog:prog };
+}
+
+function parse_if() {
+    skip_kw("if");
+    var cond = parse_expression();
+    if (!is_punc("{")) skip_kw("then");
+    var then = parse_expression();
+    var ret = { type: "if", cond: cond, then: then};
+    if (is_kw("else")) {
+        input.next();
+        ret.else = parse_expression();
+    }
+    return ret;
+}
+
+//TODO
+// - Lower Level Parsing
+// - Maybe functions
