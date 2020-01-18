@@ -243,5 +243,47 @@ function parse_expression() {
     })
 }
 
+//Maybe Functions
+function maybe_call(expr) {
+    expr = expr();
+    return is_punc("(") ? parse_call(expr) : expr;
+}
+
+function parse_call(func) {
+    return {
+        type: "call",
+        func: func,
+        args: delimited("(", ")", ";", parse_expression)
+    };
+}
+
+var PRECEDENCE = {
+    "=": 1,
+    "||": 2,
+    "&&": 3,
+    "<": 7, ">": 7, "<=": 7, ">=": 7, "==": 7, "!=": 7,
+    "+": 10, "-": 10,
+    "*": 20, "/": 20, "%": 20,
+};
+
+function maybe_binary(left, my_prec) {
+    var tok = is_op();
+    if (tok) {
+        var his_prec = PRECEDENCE[tok.value];
+        if (his_prec > my_prec) {
+            input.next();
+            var right = maybe_binary(parse_atom(), his_prec);
+            var binary = {
+                type    : tok.value == "=" ? "assign" : "binary",
+                operator: tok.value,
+                left    : left,
+                right   : right
+            };
+            return maybe_binary(binary, my_prec);
+        }
+    }
+    return left;
+}
+
 //TODO
-// - Maybe functions
+// - Finish Maybe functions
