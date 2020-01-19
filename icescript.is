@@ -353,7 +353,7 @@ function parse(input) {
     }
     function parse_varname() {
         var name = input.next();
-        if (name.type != "var") input.croak("IceScript is Expecting a Variable Name");
+        if (name.type != "var") input.croak("Oh, IceScript is Expecting a Variable Name");
         return name.value;
     }
     function parse_if() {
@@ -384,6 +384,31 @@ function parse(input) {
             type    : "bool",
             value   : input.next().value == "true"
         };
+    }
+    function maybe_call(expr) {
+        expr = expr();
+        return is_punc("(") ? parse_call(expr) : expr;
+    }
+    function parse_atom() {
+        return maybe_call(function(){
+            if (is_punc("(")) {
+                input.next();
+                var exp = parse_expression();
+                skip_punc(")");
+                return exp;
+            }
+            if (is_punc("{")) return parse_prog();
+            if (is_kw("if")) return parse_if();
+            if (is_kw("true") || is_kw("false")) return parse_bool();
+            if (is_kw("icescript")) {
+                input.next();
+                return parse_icescript();
+            }
+            var tok = input.next();
+            if (tok.type == "var" || tok.type == "num" || tok.type == "str")
+                return tok;
+            unexpected();
+        });
     }
 }
 
