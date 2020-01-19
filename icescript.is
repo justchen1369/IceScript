@@ -339,7 +339,7 @@ function parse(input) {
         }
         return left;
     }
-    function delimted(start, stop, separator, parser) {
+    function delimited(start, stop, separator, parser) {
         var a = [], first = true;
         skip_punc(start);
         while (!input.eof()) {
@@ -410,7 +410,26 @@ function parse(input) {
             unexpected();
         });
     }
+    function parse_toplevel() {
+        var prog = [];
+        while (!input.eof()) {
+            prog.push(parse_expression());
+            if (!input.eof()) skip_punc(";");
+        }
+        return { type: "prog", prog: prog}
+    }
+    function parse_prog() {
+        var prog = delimited("{", "}", ";", parse_expression);
+        if (prog.length == 0) return FALSE;
+        if (prog.length == 1) return prog[0];
+        return { type: "prog", prog: prog};
+    }
+    function parse_expression() {
+        return maybe_call(function() {
+            return maybe_binary(parse_atom(), 0);
+        });
+    }
 }
 
 //TODO
-// - Finish Parser entirely.
+// - Work on Interpreter
