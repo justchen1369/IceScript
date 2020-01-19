@@ -285,5 +285,107 @@ function maybe_binary(left, my_prec) {
     return left;
 }
 
+var FALSE = { type: "bool", value: false};
+function parse(input) {
+    var PRECEDENCE = {
+        "=": 1,
+        "||": 2,
+        "&&": 3,
+        "<": 7, ">": 7, "<=": 7, ">=": 7, "==": 7, "!=": 7,
+        "+": 10, "-": 10,
+        "*": 20, "/": 20, "%": 20,
+    };
+    return parse_toplevel();
+    function is_punc(ch) {
+        var tok = input.peek();
+        return tok && tok.type == "punc" && (!ch || tok.value == ch) && tok;
+    }
+    function is_kw(kw) {
+        var tok = input.peek();
+        return tok && tok.type == "kw" && (!kw || tok.value == kw) && tok;
+    }
+    function is_op(op) {
+        var tok = input.peek();
+        return tok && tok.type == "op" && (!op || tok.value == op) && tok;
+    }
+    function skip_punc(ch) {
+        if (is_punc(ch)) input.next();
+        else input.croak("Ahhhhh IceScript is expecting punctuation: \"" + ch + "\"");
+    }
+    function skip_kw(kw) {
+        if (is_kw(kw)) input.next();
+        else input.croak("Ahhhhh IceScript is expecting keyword: \"" + kw + "\"");
+    }
+    function skip_punc(op) {
+        if (is_op(op)) input.next();
+        else input.croak("Ahhhhh IceScript is expecting operator: \"" + op + "\"");
+    }
+    function unexpected() {
+        input.croak("IceScript sees that there's an Unexpected Token: " + JSON.stringify(input.peek()));
+    }
+    function maybe_binary(left, my_prec) {
+        var tok = is_op();
+        if (tok) {
+            var his_prec = PRECEDENCE[tok.value];
+            if (his_prec > my_prec) {
+                input.next();
+                return maybe_binary({
+                    type    : tok.value == "=" ? "assign" : "binary",
+                    operator: tok.value,
+                    left    : left,
+                    right   : maybe_binary(parse_atom(), his_prec)
+                }, my_prec);
+            }
+        }
+        return left;
+    }
+    function delimted(start, stop, separator, parser) {
+        var a = [], first = true;
+        skip_punc(start);
+        while (!input.eof()) {
+            if (is_punc(stop)) break;
+            if (first) first = false; else skip_punc(seperator);
+            if (is_punc(stop)) break;
+            a.push(parser());
+        }
+        skip_punc(stop);
+        return a;
+    }
+    function parse_varname() {
+        var name = input.next();
+        if (name.type != "var") input.croak("IceScript is Expecting a Variable Name");
+        return name.value;
+    }
+    function parse_if() {
+        skip_kw("if");
+        var cond = parse_expression();
+        if (!is_punc("{")) skip_kw("then");
+        var then = parse_expression();
+        var ret = {
+            type: "if",
+            cond: cond,
+            then: then,
+        };
+        if (is_kw("else")) {
+            input.next();
+            ret.else = parse_expression();
+        }
+        return ret;
+    }
+    function parse_icescript() {
+        return {
+            type: "IceScript",
+            vars: delimited("(", ")", ",", parse_varname),
+            body: parse_expression()
+        };
+    }
+    function parse_bool() {
+        return {
+            type    : "bool",
+            value   : input.next().value == "true"
+        };
+    }
+}
+
 //TODO
-// - Finish Maybe functions.
+// - Finish Parser entirely.
