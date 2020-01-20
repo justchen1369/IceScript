@@ -67,21 +67,23 @@ function TokenStream(input) {
         return /[a-z_]/i.test(ch);
     }
     function is_id(ch) {
-        return is_id_start(ch) || "?!-<>=0123456789".indexOf(ch) >= 0;
+        return is_id_start(ch) || "?!-<>=0123456789".includes(ch);
     }
     function is_op_char(ch) {
-        return "+-*/%=&|<>!".indexOf(ch) >= 0;
+        return "+-*/%=&|<>!".includes(ch);
     }
     function is_punc(ch) {
-        return ",;(){}[]".indexOf(ch) >= 0;
+        return ",;(){}[]".includes(ch);
     }
     function is_whitespace(ch) {
-        return " \t\n".indexOf(ch) >= 0;
+        return " \t\n".includes(ch);
     }
     function read_while(predicate) {
         var str = "";
-        while (!input.eof() && predicate(input.peek()));
+        while (!input.eof() && predicate(input.peek())) {
+            console.log(str);
             str += input.next();
+        }
         return str;
     }
     function read_number() {
