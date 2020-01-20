@@ -53,8 +53,8 @@ function TokenStream(input) {
     var keywords = "if then else IceScript true false";
     return {
         next : next,
-        peak : peak,
-        eof : oef,
+        peek : peek,
+        eof : eof,
         croak: input.croak
     };
     function is_keyword(x) {
@@ -80,7 +80,7 @@ function TokenStream(input) {
     }
     function read_while(predicate) {
         var str = "";
-        white (!input.eof() && predicate(input.peak()));
+        while (!input.eof() && predicate(input.peek()));
             str += input.next();
         return str;
     }
@@ -431,5 +431,123 @@ function parse(input) {
     }
 }
 
+//Interpreter
+function Environment(parent) {
+    this.vars = Object.create(parent ? parent.vars : null);
+    this.parent = parent;
+}
+Environment.prototype = {
+    extent: function() {
+        return new Environment(this);
+    },
+    lookup: function(name) {
+        var scope = this;
+        while (scope) {
+            if (Object.prototype.hasOwnProperty.call(scope.vars, name))
+                return scope;
+            scope = scope.parent;
+        }
+    },
+    get: function(name) {
+        if (name in this.vars)
+            return this.vars[name];
+        throw new Error("IceScript detected that there's an Undefined Variable... It's " + name);
+    },
+    set: function(name, value) {
+        var scope = this.lookup(name);
+        if (!scope && this.parent)
+            throw new Error ("IceScript detected that there's an Undefined Variable... It's " + name);
+        return (scope || this).vars[name] = value;
+    },
+    def: function(name, value) {
+        return this.vars[name] = value;
+    }
+}
+
+function evaluate(exp, env) {
+    switch (exp.type) {
+        case "num":
+        case "str":
+        case "bool":
+            return exp.value;
+        case "var":
+            return env.get(exp.value);
+        case "assign":
+            if (exp.left.type != "var")
+                throw new Error ("IceScript cannot seem to be able to assign to" + JSON.stringify(exp.left));
+            return env.setup(exp.left.value, evaluate(exp.right, env));
+        case "binary":
+            return apply_op(exp.operator,
+                evaluate(exp.left, env),
+                evaluate(exp.right, env));
+        case "icescript":
+            return make_icescript(env, exp);
+        case "if":
+            var cond = evaluate(exp.cond, env);
+            if (cond !==false) return evaluate(exp.then, env);
+            return exp.else ? evaluate(exp.else, env) : false;
+        case "prog":
+            var func = evaluate(exp.func, env);
+            return func.apply(null, exp.args.map(function(arg){
+                return evaluate(arg, env);
+            }));
+        default:
+            throw new Error("IceScript doesn't know how to evaluate" + exp.type);
+    }
+}
+
+function apply_op(op, a , b) {
+    function num(x) {
+        if (typeof x != "number")
+            throw new Error("IceScript expected number, but instead, got " + x)
+        return x;
+    }
+    function div(x) {
+        if (num(x) == 0)
+            throw new Error("IceScript saw you were trying to divide by 0. Please don't do that again.");
+        return x;
+    }
+    switch (op) {
+        case "+"    : return num(a) + num(b);
+        case "-"    : return num(a) - num(b);
+        case "*"    : return num(a) * num(b);
+        case "/"    : return num(a) / div(b);
+        case "%"    : return num(a) % div(b);
+        case "&&"   : return a !== false && b;
+        case "||"   : return a !== false ? a : b;
+        case "<"    : return num(a) < num(b);
+        case ">"    : return num(a) > num(b);
+        case "<="   : return num(a) <= num(b);
+        case ">="   : return num(a) >= num(b);
+        case "=="   : return a === b;
+        case "!="   : return a !== b;
+    }
+    throw new Error("IceScript can't seem to apply operator " + op);
+}
+
+function make_icescript(env, exp) {
+    function icescript() {
+        var name = exp.vars;
+        var scope = env.extent();
+        for (var i = 0; i < names.length; ++i)
+            scope.deg(names[i], i < arguments.length ? arguments[i] : false);
+        return evaluate(exp.body, scope);
+    }
+    return icescript;
+}
+
+//test code with maths owo
+var code = "sum = icescript(x, y) x + y; print(sum(2, 3));";
+
+var ast = parse(TokenStream(InputStream(code)));
+
+var globalEnv = new Environment();
+
+globalEnv.def("print", function(txt){
+    console.log(txt);
+});
+
+evaluate(ast, globalEnv);
+
 //TODO
-// - Work on Interpreter
+// - TBD
