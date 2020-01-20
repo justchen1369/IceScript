@@ -18,7 +18,7 @@ jobs:
     - name: Send Tweet Action
       uses: ethomson/send-tweet-action@v1.0.0
       with:
-        status: "IceScript just initiated a new push. Milestone 2 should be revoked. 1/20/20-0055 https://github.com/hiitsdevin/IceScript/"
+        status: "IceScript just initiated a new push. I might redo the project. 1/20/20-0945 https://github.com/hiitsdevin/IceScript/"
         consumer-key: ${{ secrets.TWITTER_CONSUMER_API_KEY }}
         consumer-secret: ${{ secrets.TWITTER_CONSUMER_API_SECRET }}
         access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}

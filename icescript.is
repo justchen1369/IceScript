@@ -549,6 +549,8 @@ globalEnv.def("print", function(txt){
 
 evaluate(ast, globalEnv);
 
+/* -----[ entry point for NodeJS ]----- */
+
 var globalEnv = new Environment();
 
 globalEnv.def("time", function(func){
