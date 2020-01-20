@@ -4,8 +4,8 @@ Ice Bear wants to make a joke programming language. Confusing. Please don't use 
 It won awards.. bad ones
 - "Devin it doesn't work"
 - "Help, this code is making me hang by a fucking thread."
-- "console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
-- "Help, this code is making me hung" -nokkusuu aka Nox
+- console.log("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+- "Help, this code is making me hung" -nokkusuu aka Nox.
 
 ![1](https://i.hiitsdevin.dev/captures/hiitsdevin_new_842338.png)
 
